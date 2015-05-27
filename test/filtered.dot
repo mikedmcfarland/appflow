@@ -1,0 +1,7 @@
+// [[file:~/projects/raindance/modules/appflow/test/specs.org::*Graph][Graph:1]]
+digraph filtered {
+        start -> producesBool
+        producesBool -> a [label="true"]
+        producesBool -> b [label="false"]
+}
+// Graph:1 ends here

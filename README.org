@@ -1,0 +1,61 @@
+* appflow
+
+tools for generating graphs for application flow.
+
+** Introduction
+:PROPERTIES:
+:noweb: yes
+:END:
+
+You write graphs (in dot format) that represent connectioning parts of an application.
+#+name: exampleDot
+#+begin_src dot :file example.png :cmdline -Tpng
+  digraph app {
+          titleScreen -> mainMenu
+          mainMenu -> singlePlayer
+          mainMenu -> multiPlayer
+          mainMenu -> settings
+
+          singlePlayer -> game
+          game -> quit
+          quit -> mainMenu
+  }
+#+end_src
+
+You then instantiate the graph, providing implementations for nodes to link it to your application code.
+
+You can then listen to changes in the graph.
+#+begin_src js
+  const appflow = require('./lib/appflow')
+  const Graph = appFlow.Graph
+  const Race = appFlow.node.Race
+
+  const src = `
+    <<exampleDot>>
+    `
+  const app = Graph.fromDot(src)
+  const nodes = {
+    mainMenu: Race()
+  }
+  const startingNode = app.nodes.titleScreen
+  app.run(startingNode)
+  app.on('change',() => console.log(app.active)
+
+#+end_src
+
+
+** Are we in only one state at a time?
+
+Often yes, but that's not a guarantee.
+
+The semantics about how many nodes are active, depends on the [[file:test/specs.org][semantics of the nodes]]
+
+** run tests
+   #+begin_example
+      gulp test
+   #+end_example
+
+** watch directory for changes
+   #+begin_example
+     gulp watch
+   #+end_example

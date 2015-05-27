@@ -1,0 +1,23 @@
+{
+  "name": "appflow",
+  "version": "0.0.1",
+  "description": "tools for generating graphs for application flow",
+  "main": "dist/index.js",
+  "scripts": {
+    "prepublish": "gulp build",
+    "build": "gulp build",
+    "test": "gulp test"
+  },
+  "author": "Mike McFarland",
+  "devDependencies": {
+    "engulped": "git://github.com/mikedmcfarland/engulped#master",
+    "glob": "^5.0.3",
+    "gulp": "^3.8.11"
+  },
+  "dependencies": {
+    "change-case": "^2.3.0",
+    "dotgraph": "git://github.com/mikedmcfarland/dotgraph#master",
+    "lodash": "^3.5.0",
+    "promise": "^6.1.0"
+  }
+}

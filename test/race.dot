@@ -1,0 +1,8 @@
+// [[file:~/projects/raindance/modules/appflow/test/specs.org::*Graph][Graph:1]]
+digraph race {
+        race -> a
+        race -> b
+        a -> a2
+        b -> b2
+}
+// Graph:1 ends here

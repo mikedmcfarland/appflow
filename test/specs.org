@@ -1,0 +1,368 @@
+* Specs
+:PROPERTIES:
+:comments: yes
+:padline:  no
+:tangle: appflowSpec.js
+:exports: both
+:END:
+
+** specs start                                                     :noexport:
+wrapping up specs.
+#+begin_src js
+  const specsUtil = require('./specsUtil')
+  const assert    = require('assert')
+  const Basic = require('../lib/Basic')
+  const Race = require('../lib/Race')
+  const Event = require('../lib/Event')
+  const _ = require('lodash')
+  const Promise = require('promise')
+
+  const graphs = specsUtil.loadGraphs()
+
+  function assertEndsWith(graphResult,expectedNode,expectedValue){
+    return graphResult.then(({node,value}) => {
+      assert.equal(node,expectedNode)
+      assert.equal(value.value,expectedValue)
+    })
+  }
+
+  const getNextChange = graph =>
+    new Promise(fulfill => graph.once('change',fulfill))
+
+
+  describe('describe appflow',()=>{
+#+end_src
+
+** Completion of one node starts next
+*** Graph
+#+source: startsNext
+#+begin_src dot :tangle startsNext.dot :file startsNext.png :cmdline -Tpng
+  digraph startsNext {
+          start -> next
+  }
+#+end_src
+
+#+RESULTS:
+[[file:startsNext.png]]
+
+[[startsNext.png]]
+
+
+*** Basic Node Default
+If you don't specify an implementation.
+it's assumed you want a basic type that completes immediately (producing no results).
+#+source: startsNextSpec
+#+begin_src js
+  it('Completion of one node starts next ',()=>{
+      const graph = graphs.startsNext()
+      const {start,next} = graph.nodes
+      assertEndsWith(
+        graph.run(start),
+        next)
+    })
+#+end_src
+
+#+RESULTS:
+
+*** With (v => promise)
+You can also represent the same thing by defining an implementation for a basic node,
+This is a function that returns a promise.
+#+begin_src js
+  it('basic nodes can be represented with fn\'s that return promises', ()=>{
+      const graph = graphs.startsNext({
+        start: Basic(() => Promise.resolve())
+      })
+
+      const {start,next} = graph.nodes
+      assertEndsWith(
+        graph.run(start),
+        next)
+
+    })
+#+end_src
+
+
+
+** Nodes can be filtered
+Node edges can have filters, which will prevent communication unless the predicate matches.
+Any edge with a label of 'true' or 'false' will automatically become filters for those boolean values.
+*** Graph
+#+source: filtered
+#+begin_src dot :tangle filtered.dot :file filtered.png :cmdline -Tpng
+  digraph filtered {
+          start -> producesBool
+          producesBool -> a [label="true"]
+          producesBool -> b [label="false"]
+  }
+#+end_src
+
+#+RESULTS:
+[[file:filtered.png]]
+
+[[filtered.png]]
+
+*** Spec
+#+source: filteredSpec
+#+begin_src js
+  it('Nodes can be filtered with true',()=>{
+    const graph = graphs.filtered({
+      producesBool : Basic(() => Promise.resolve(true))
+    })
+
+    const {start,a} = graph.nodes
+    return assertEndsWith(
+      graph.run(start),
+      a,
+      true)
+  })
+
+  it('Nodes can be filtered with false',()=>{
+    const graph = graphs.filtered({
+      producesBool : Basic(() => Promise.resolve(false))
+    })
+
+    const {start,b} = graph.nodes
+    return assertEndsWith(
+      graph.run(start),
+      b,
+      false)
+  })
+#+end_src
+
+** Nodes can be filtered by some and none
+A 'some' and 'none' filter is also provided.
+This filters on whether an array is given that has zero (none) or more (some) values.
+
+*** Graph
+#+source: someAndNone
+#+begin_src dot :tangle someAndNone.dot :file someAndNone.png :cmdline -Tpng
+  digraph someAndNone {
+          start -> producesArray
+          producesArray -> a [label="some"]
+          producesArray -> b [label="none"]
+  }
+#+end_src
+
+#+RESULTS:
+[[file:someAndNone.png]]
+
+[[someAndNone.png]]
+
+
+*** Spec
+#+source: someAndNoneSpec
+#+begin_src js
+  it('Nodes can be filtered by some and none',()=>{
+    const some = ['a value']
+    const graph = graphs.someAndNone({
+      producesArray : Basic(() => Promise.resolve(some))
+    })
+    const {start,a} = graph.nodes
+
+    return assertEndsWith(
+      graph.run(start),
+      a,
+      some)
+  })
+
+  it('Nodes can be filtered by none',()=>{
+    const none = []
+    const graph = graphs.someAndNone({
+      producesArray : Basic(() => Promise.resolve(none))
+    })
+    const {start,b} = graph.nodes
+
+    return assertEndsWith(
+      graph.run(start),
+      b,
+      none)
+
+  })
+#+end_src
+
+** Nodes
+
+*** Basic
+Basic nodes are used if no implementation, or a function are provided.
+They are the "default" node.
+[[Basic Node Default][Some examples have already been shown.]]
+Basic nodes:
+- push their value to all children on completion.
+- they stop after completing.
+- do not push their values if canceled.
+
+Here's what constructing a basic node with a cancellation routine looks like
+  #+begin_src js :tangle no
+    const node = Basic(
+      input => new Promise((fulfill,reject) => {
+        //do work and fulfill promise
+      }),
+      () => {
+        //node canceled, so cleanup act
+      })
+  #+end_src
+
+
+
+*** Race
+Activates all children, waiting for the first one to return a value.
+When one does, the rest are canceled. Used to initiate a race between other nodes,
+who ever wins continues the flow.
+
+Race nodes:
+- complete immediately with the value given to them (by default)
+- push their value to all children at completion.
+- remain active until one of their children completes.
+- cancel all other children and go inactive when a child completes.
+
+**** Graph
+#+source: race
+#+begin_src dot :tangle race.dot :file race.png :cmdline -Tpng
+  digraph race {
+          race -> a
+          race -> b
+          a -> a2
+          b -> b2
+  }
+#+end_src
+
+#+RESULTS:
+[[file:race.png]]
+
+[[race.png]]
+
+**** Spec
+#+source: raceSpec
+#+begin_src js
+  it('Nodes under a race ',()=>{
+
+    let afulfill;
+    let bfulfill;
+
+    const graph = graphs.race({
+      race: Race(),
+      a: Basic(() => new Promise(fulfill => afulfill = fulfill)),
+      b: Basic(() => new Promise(fulfill => bfulfill = fulfill))
+    })
+
+    const {race,a,a2,b,b2} = graph.nodes
+
+    const getNext = _.partial(getNextChange,graph)
+
+    const test = getNext(graph).then(nodes => {
+      const expected = [race,a,b]
+      assert(_.contains(nodes,...expected),'race a and b are active')
+      afulfill()
+      return getNext()
+
+    }).then(nodes =>{
+      assert.deepEqual(nodes, [a2],'a2 is active')
+    })
+
+    graph.run(race)
+    return test
+
+  })
+#+end_src
+
+*** Event
+An event node expects to be given an event emitter.
+It then forwards all events down the edges until one
+triggers entering of another node.
+
+**** Graph
+#+source: event
+#+begin_src dot :tangle event.dot :file event.png :cmdline -Tpng
+  digraph event {
+          event -> a
+          event -> b
+          event -> someOtherName [label="'c'"]
+  }
+#+end_src
+
+#+RESULTS:
+[[file:event.png]]
+
+**** Spec
+#+source: eventSpec
+#+begin_src js
+  const EventEmitter = require('events').EventEmitter
+
+  it('Event node uses connected node name as default event type',()=>{
+
+    const eventEmitter = new EventEmitter()
+    const graph = graphs.event({
+      event: Event(()=>eventEmitter)
+    })
+
+    const {event,a}  = graph.nodes
+
+    const test = assertEndsWith(
+      graph.run(event),
+      a)
+
+    eventEmitter.emit('a')
+    return test
+
+  })
+
+  it('Event node uses label of edge if present',()=>{
+
+    const eventEmitter = new EventEmitter()
+    const graph = graphs.event({
+      event: Event(()=>eventEmitter)
+    })
+
+    const {event,someOtherName}  = graph.nodes
+
+    const test = assertEndsWith(
+      graph.run(event),
+      someOtherName)
+
+    eventEmitter.emit('c')
+    return test
+
+  })
+
+  it('Event node uses filter if present',()=>{
+
+    const eventEmitter = new EventEmitter()
+
+    const filter = ({type,value}) =>
+      type !== 'a' && value !== 'fail'
+
+    const graph = graphs.event({
+      event: Event(()=>eventEmitter,filter)
+    })
+
+    const {event,a,b}  = graph.nodes
+
+    const test = assertEndsWith(
+      graph.run(event), b)
+
+    eventEmitter.emit('a','fail')
+    eventEmitter.emit('b')
+    return test
+
+  })
+
+#+end_src
+
+
+
+*** TODO Custom
+
+Creating additional node types are possible.
+Just specify your implementation when creating the graph.
+Here's an example
+  #+begin_src js :tangle no
+      //Add example of creating node type
+  #+end_src
+
+
+
+** specs end :noexport:
+end the wrapping
+#+begin_src js :comment:
+  })
+#+end_src

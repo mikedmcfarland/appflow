@@ -1,0 +1,7 @@
+// [[file:~/projects/raindance/modules/appflow/test/specs.org::*Graph][Graph:1]]
+digraph event {
+        event -> a
+        event -> b
+        event -> someOtherName [label="'c'"]
+}
+// Graph:1 ends here

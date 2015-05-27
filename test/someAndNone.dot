@@ -1,0 +1,7 @@
+// [[file:~/projects/raindance/modules/appflow/test/specs.org::*Graph][Graph:1]]
+digraph someAndNone {
+        start -> producesArray
+        producesArray -> a [label="some"]
+        producesArray -> b [label="none"]
+}
+// Graph:1 ends here
