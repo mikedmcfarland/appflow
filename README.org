@@ -22,6 +22,12 @@ You write graphs (in dot format) that represent connectioning parts of an applic
   }
 #+end_src
 
+#+RESULTS:
+[[file:example.png]]
+
+[[example.png]]
+
+
 You then instantiate the graph, providing implementations for nodes to link it to your application code.
 
 You can then listen to changes in the graph.
