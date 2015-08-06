@@ -1,10 +1,11 @@
 * appflow
 
-tools for generating graphs for application flow.
+Tools for generating graphs for application flow.
+So you can make a diagram of your application flow with dotviz, and then actually use it in your application.
 
 ** Introduction
 :PROPERTIES:
-:noweb: yes
+:noweb:    yes
 :END:
 
 You write graphs (in dot format) that represent connectioning parts of an application.
@@ -37,7 +38,16 @@ You can then listen to changes in the graph.
   const Race = appFlow.node.Race
 
   const src = `
-    <<exampleDot>>
+    digraph app {
+            titleScreen -> mainMenu
+            mainMenu -> singlePlayer
+            mainMenu -> multiPlayer
+            mainMenu -> settings
+
+            singlePlayer -> game
+            game -> quit
+            quit -> mainMenu
+    }
     `
   const app = Graph.fromDot(src)
   const nodes = {
@@ -50,11 +60,8 @@ You can then listen to changes in the graph.
 #+end_src
 
 
-** Are we in only one state at a time?
-
-Often yes, but that's not a guarantee.
-
-The semantics about how many nodes are active, depends on the [[file:test/specs.org][semantics of the nodes]]
+** How do these nodes work?
+Check out the [[file:test/specs.org][literate specs]] about the nodes for more information.
 
 ** run tests
    #+begin_example

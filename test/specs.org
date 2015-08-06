@@ -2,12 +2,14 @@
 :PROPERTIES:
 :comments: yes
 :padline:  no
-:tangle: appflowSpec.js
-:exports: both
+:tangle:   appflowSpec.js
+:exports:  both
 :END:
 
-** specs start                                                     :noexport:
-wrapping up specs.
+** specs preamble
+The following are a few variables and functions that will be used throughout the rest of the specs.
+
+*** graphs
 #+begin_src js
   const specsUtil = require('./specsUtil')
   const assert    = require('assert')
@@ -18,20 +20,39 @@ wrapping up specs.
   const Promise = require('promise')
 
   const graphs = specsUtil.loadGraphs()
+#+end_src
 
+the =graphs= variable holds all the graphs, indexed by name, that are generated from the dot sources defined below.
+
+*** assertEndsWith
+#+begin_src js
   function assertEndsWith(graphResult,expectedNode,expectedValue){
     return graphResult.then(({node,value}) => {
       assert.equal(node,expectedNode)
       assert.equal(value.value,expectedValue)
     })
   }
+#+end_src
+
+The =assertEndsWith= function will take a result from running a graph, which is a Promise<{node,value}>,
+And confirms that the given expected node and value match.
+
+*** getNextChange
+#+begin_src js
 
   const getNextChange = graph =>
     new Promise(fulfill => graph.once('change',fulfill))
+#+end_src
 
+=getNextChange= is just a promise of the next change event from a graph.
 
+** end preamble
+
+start mocha description of appflow
+#+begin_src js
   describe('describe appflow',()=>{
 #+end_src
+
 
 ** Completion of one node starts next
 *** Graph
@@ -361,8 +382,8 @@ Here's an example
 
 
 
-** specs end :noexport:
-end the wrapping
-#+begin_src js :comment:
+** specs end
+end mocha description of appflow
+#+begin_src js
   })
 #+end_src

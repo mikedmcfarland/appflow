@@ -1,4 +1,4 @@
-// [[file:~/projects/raindance/modules/appflow/test/specs.org::*Graph][Graph:1]]
+// [[file:~/projects/appflow/test/specs.org::*Graph][Graph:1]]
 digraph startsNext {
         start -> next
 }

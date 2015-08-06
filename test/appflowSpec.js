@@ -1,4 +1,4 @@
-// [[file:~/projects/raindance/modules/appflow/test/specs.org::*specs%20start][specs\ start:1]]
+// [[file:~/projects/appflow/test/specs.org::*graphs][graphs:1]]
 const specsUtil = require('./specsUtil')
 const assert    = require('assert')
 const Basic = require('../lib/Basic')
@@ -8,21 +8,23 @@ const _ = require('lodash')
 const Promise = require('promise')
 
 const graphs = specsUtil.loadGraphs()
-
+// graphs:1 ends here
+// [[file:~/projects/appflow/test/specs.org::*assertEndsWith][assertEndsWith:1]]
 function assertEndsWith(graphResult,expectedNode,expectedValue){
   return graphResult.then(({node,value}) => {
     assert.equal(node,expectedNode)
     assert.equal(value.value,expectedValue)
   })
 }
-
+// assertEndsWith:1 ends here
+// [[file:~/projects/appflow/test/specs.org::*getNextChange][getNextChange:1]]
 const getNextChange = graph =>
   new Promise(fulfill => graph.once('change',fulfill))
-
-
+// getNextChange:1 ends here
+// [[file:~/projects/appflow/test/specs.org::*end%20preamble][end\ preamble:1]]
 describe('describe appflow',()=>{
-// specs\ start:1 ends here
-// [[file:~/projects/raindance/modules/appflow/test/specs.org::*Basic%20Node%20Default][Basic\ Node\ Default:1]]
+// end\ preamble:1 ends here
+// [[file:~/projects/appflow/test/specs.org::*Basic%20Node%20Default][Basic\ Node\ Default:1]]
 it('Completion of one node starts next ',()=>{
     const graph = graphs.startsNext()
     const {start,next} = graph.nodes
@@ -31,7 +33,7 @@ it('Completion of one node starts next ',()=>{
       next)
   })
 // Basic\ Node\ Default:1 ends here
-// [[file:~/projects/raindance/modules/appflow/test/specs.org::*With%20(v%20%3D>%20promise)][With\ \(v\ =>\ promise\):1]]
+// [[file:~/projects/appflow/test/specs.org::*With%20(v%20%3D>%20promise)][With\ \(v\ =>\ promise\):1]]
 it('basic nodes can be represented with fn\'s that return promises', ()=>{
     const graph = graphs.startsNext({
       start: Basic(() => Promise.resolve())
@@ -44,7 +46,7 @@ it('basic nodes can be represented with fn\'s that return promises', ()=>{
 
   })
 // With\ \(v\ =>\ promise\):1 ends here
-// [[file:~/projects/raindance/modules/appflow/test/specs.org::*Spec][Spec:1]]
+// [[file:~/projects/appflow/test/specs.org::*Spec][Spec:1]]
 it('Nodes can be filtered with true',()=>{
   const graph = graphs.filtered({
     producesBool : Basic(() => Promise.resolve(true))
@@ -69,7 +71,7 @@ it('Nodes can be filtered with false',()=>{
     false)
 })
 // Spec:1 ends here
-// [[file:~/projects/raindance/modules/appflow/test/specs.org::*Spec][Spec:1]]
+// [[file:~/projects/appflow/test/specs.org::*Spec][Spec:1]]
 it('Nodes can be filtered by some and none',()=>{
   const some = ['a value']
   const graph = graphs.someAndNone({
@@ -97,7 +99,7 @@ it('Nodes can be filtered by none',()=>{
 
 })
 // Spec:1 ends here
-// [[file:~/projects/raindance/modules/appflow/test/specs.org::*Spec][Spec:1]]
+// [[file:~/projects/appflow/test/specs.org::*Spec][Spec:1]]
 it('Nodes under a race ',()=>{
 
   let afulfill;
@@ -128,7 +130,7 @@ it('Nodes under a race ',()=>{
 
 })
 // Spec:1 ends here
-// [[file:~/projects/raindance/modules/appflow/test/specs.org::*Spec][Spec:1]]
+// [[file:~/projects/appflow/test/specs.org::*Spec][Spec:1]]
 const EventEmitter = require('events').EventEmitter
 
 it('Event node uses connected node name as default event type',()=>{
@@ -189,6 +191,6 @@ it('Event node uses filter if present',()=>{
 
 })
 // Spec:1 ends here
-// [[file:~/projects/raindance/modules/appflow/test/specs.org::*specs%20end][specs\ end:1]]
+// [[file:~/projects/appflow/test/specs.org::*specs%20end][specs\ end:1]]
 })
 // specs\ end:1 ends here
